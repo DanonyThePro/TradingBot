@@ -5,10 +5,17 @@ import ccxt
 import pandas as pd
 import pandas_ta as ta
 
+import os
+
 from keep_alive import keep_alive, status_data
 
-api_key = 'BqtIobcx0jpfM8tQ05JFTSnqKYxyhTGc8Q4ei2yVmeM87kn9InqCvPGTaGEMMpUh'
-secret = 'jpYAivKiD062DZ4tsaZRhDzB7WSoipjYEbof1OUOCzrX5gldFEItmHBQPZc262Zm'
+api_key = os.getenv("API_KEY")
+secret = os.getenv("SECRET_KEY")
+
+if not api_key:
+    raise ValueError("API_KEY does not exist!")
+if not secret:
+    raise ValueError("SECRET_KEY does not exist!")
 
 Client = ccxt.binance({
     'apiKey' : api_key, # your api key/code
