@@ -1,4 +1,5 @@
 import time
+from zoneinfo import ZoneInfo
 from math import floor
 
 import ccxt
@@ -129,7 +130,7 @@ def main():
         status_data["Balance"] = f"{fetch_balance('USDT') :.2f}"
         status_data["P&L(%)"] = f"{(((fetch_balance('USDT') - base_balance) / base_balance) * 100.0) :.2f}"
         status_data["P&L($)"] = f"{fetch_balance('USDT') - base_balance :.2f}"
-        status_data["Last Check"] = pd.Timestamp.utcnow().strftime("%d/%m %H:%M:%S UTC")
+        status_data["Last Check"] = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m %H:%M:%S")
 
         sleep_until_next_hour(df)
 
