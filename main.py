@@ -9,6 +9,9 @@ import pandas_ta as ta
 import os
 
 from keep_alive import keep_alive, status_data
+from dotenv import load_dotenv
+
+load_dotenv()
 
 api_key = os.getenv("API_KEY")
 secret = os.getenv("SECRET_KEY")
