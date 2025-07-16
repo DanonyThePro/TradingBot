@@ -1,12 +1,8 @@
-const thirty_sec_ms = 30000;
+const hour_in_ms = 60 * 60 * 1000;
 
 let context = document.getElementById('myChart');
 
 let timestamps = [];
-
-const signals = get_recent_signals();
-
-console.log(signals);
 
 let open_candles  = [];
 let high_candles  = [];
@@ -75,7 +71,7 @@ const chart = new Chart(context, config);
 
 update_chart_values_to_python_values();
 
-setInterval(update_chart_values_to_python_values, thirty_sec_ms);
+setInterval(update_chart_values_to_python_values, hour_in_ms);
 
 
 async function update_chart_values_to_python_values() {
@@ -102,14 +98,11 @@ async function update_chart_values_to_python_values() {
         c: close_candles[i]
     }));
 
-    console.log(candle_data);
-
     chart.data.datasets[0].data = candle_data;
     
     load_signals();
 
     chart.update();
-
 }
 
 async function get_python_values() {
@@ -135,6 +128,7 @@ async function get_recent_signals() {
         return -1;
     }
 }
+
 
 async function load_signals() {
     const signals = await get_recent_signals();

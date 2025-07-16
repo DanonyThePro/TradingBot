@@ -8,14 +8,6 @@ from threading import Thread
 
 import os
 import ccxt
-import logging
-
-
-logging.getLogger("werkzeug").addFilter(
-    type("OnlyRootFilter", (logging.Filter,), {
-        "filter": lambda self, record: '"GET / "' in record.getMessage()
-    })()
-)
 
 app = Flask('')
 

@@ -29,6 +29,8 @@
 
 
   <script>
+    const hour_ms = 60 * 60 * 1000;
+
     async function update() {
       try {
         const response = await fetch("/reload");
@@ -41,8 +43,9 @@
       }
     }
 
-    setInterval(update, 5000);
     update();
+
+    setInterval(update, hour_ms);
   </script>
 
   <title>Bot Status</title>
