@@ -34,10 +34,7 @@ status_data = {
     "Last Check": "N/A",
 }
 
-signals = [
-    { "time": 1752671152153, "type": "buy" },
-    { "time": 125, "type": "sell" }
-]
+signals = []
 
 should_update = False
 
