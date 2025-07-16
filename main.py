@@ -6,7 +6,7 @@ import pandas as pd
 import pandas_ta as ta
 import os
 
-from keep_alive import keep_alive, status_data
+from keep_alive import keep_alive, status_data, signals
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -112,6 +112,7 @@ symbol = 'BTC/USDT'
 base_balance = fetch_balance('USDT')
 
 
+
 def main():
     inPosition = False
     entryPrice = 0.0
@@ -169,6 +170,9 @@ def main():
                   f"Price: ${close.iloc[-1] :.2f}\n" +
                   f"Target: $ {takeProfit :.2f} \n" +
                   f"Stop Loss: ${stopLoss :.2f}")
+
+            signals.append({ "time": df['time'].iloc[-1], "type": "buy" })
+
             Client.create_market_order(symbol, 'buy', round_quantity(qty, 5))
             inPosition = True
 
@@ -179,6 +183,9 @@ def main():
                     f"Entry: $ {entryPrice :.2f} \n" +
                     f"P&L: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
+
+                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
                 inPosition = False
@@ -190,6 +197,9 @@ def main():
                     f"Entry: $ {entryPrice :.2f} \n" +
                     f"Loss: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
+
+                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
                 inPosition = False
@@ -201,6 +211,9 @@ def main():
                     f"Entry: $ {entryPrice :.2f} \n" +
                     f"Profit: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
+
+                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
                 inPosition = False

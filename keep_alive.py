@@ -8,6 +8,14 @@ from threading import Thread
 
 import os
 import ccxt
+import logging
+
+
+logging.getLogger("werkzeug").addFilter(
+    type("OnlyRootFilter", (logging.Filter,), {
+        "filter": lambda self, record: '"GET / "' in record.getMessage()
+    })()
+)
 
 app = Flask('')
 
@@ -25,6 +33,11 @@ status_data = {
     "P&L($)": "0.0",
     "Last Check": "N/A",
 }
+
+signals = [
+    { "time": 1752671152153, "type": "buy" },
+    { "time": 125, "type": "sell" }
+]
 
 should_update = False
 
@@ -53,12 +66,38 @@ def reload():
         }
         return jsonify(response)
 
+@app.route('/chart_values')
+def fetch_chart_values():
+    open_candles, high_candles, low_candles, close_candles, timestamps = get_btc_data()
+    response = {
+        "timestamps": timestamps,
+        "open_candles": open_candles,
+        "high_candles": high_candles,
+        "low_candles": low_candles,
+        "close_candles": close_candles
+    }
+    return response
+
+@app.route('/signals')
+def get_signals():
+    _, _, _, _, timestamps = get_btc_data()
+    recent_signals = []
+    for signal in signals:
+        if timestamps[0] < signal["time"] < timestamps[-1]:
+            recent_signals.append(signal)
+
+    response = {
+        "signals": signals,
+        "recent_signals": recent_signals
+    }
+    return jsonify(response)
+
 def run():
     port = int(os.environ.get("PORT", 5000))
     print(f"Running on port: {port}")
     app.run(host='0.0.0.0', port=port)
 
-def get_prices():
+def get_last_price():
     global should_update
     last_price = 0.0
 
@@ -80,9 +119,26 @@ def get_prices():
 
         time.sleep(30)
 
+def get_btc_data():
+    btc_ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=96)
+
+    open_candles  = [c[1] for c in btc_ohlcv]
+    high_candles  = [c[2] for c in btc_ohlcv]
+    low_candles   = [c[3] for c in btc_ohlcv]
+    close_candles = [c[4] for c in btc_ohlcv]
+
+    israel_tz_correction = 3 * 1000 * 60 * 60
+    timestamps = [round_to_hour(c[0] + israel_tz_correction) for c in btc_ohlcv]
+
+    return open_candles, high_candles, low_candles, close_candles, timestamps
+
+def round_to_hour(dataTime):
+    hour_ms = 60 * 60 * 1000
+    return (dataTime // hour_ms) * hour_ms
+
 def keep_alive():
     run_thread = Thread(target=run)
-    data_thread = Thread(target=get_prices)
+    data_thread = Thread(target=get_last_price)
 
     run_thread.daemon = True
     data_thread.daemon = True
