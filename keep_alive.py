@@ -96,7 +96,7 @@ def update_chart_data():
             "close": c,
             "time": t
         })
-        waiting_time = time_until_next_hour() + 60
+        waiting_time = time_until_next_hour()
         print("Chart data updated!")
         print(f"waiting {waiting_time} until next chart data update...")
         time.sleep(waiting_time)
@@ -104,7 +104,7 @@ def update_chart_data():
 
 def time_until_next_hour():
     now = pd.Timestamp.utcnow()
-    next_hour = now.replace(minute=0, second=0, microsecond=0) + pd.Timedelta(hours=1)
+    next_hour = now.replace(minute=0, second=0, microsecond=0) + pd.Timedelta(hours=1, minutes=1)
     total_seconds = (next_hour - now).total_seconds()
     return total_seconds
 
