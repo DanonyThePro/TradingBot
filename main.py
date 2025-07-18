@@ -84,7 +84,7 @@ def time_until_next_hour():
 def sleep_until_next_hour(df):
     prev_open = df['open'].iloc[-2]
     time_to_sleep = time_until_next_hour()
-    print(f"Sleeping {time_to_sleep} seconds until next candle")
+    print(f"Sleeping {time_to_sleep} seconds until next candle...")
     time.sleep(time_to_sleep)
 
     while True:

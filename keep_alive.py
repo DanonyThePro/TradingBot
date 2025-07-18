@@ -112,7 +112,7 @@ def get_last_price():
 def get_btc_data():
     btc_ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=96)
 
-    print(f'get_btc_data() fetched ohlcv')
+    print(f'get_btc_data() fetched ohlcv!')
 
     open_candles  = [c[1] for c in btc_ohlcv]
     high_candles  = [c[2] for c in btc_ohlcv]
