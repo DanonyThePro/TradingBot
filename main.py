@@ -36,7 +36,7 @@ def fetch_data(symbol):
         print(f'{symbol} Data was fetched successfully!')
         return data
     except Exception as ex:
-        print(ex)
+        print(f"failed to fetch data: {ex}")
         return pd.DataFrame.empty
 
 
@@ -136,6 +136,8 @@ def main():
         status_data["Balance"] = f"{balance :.2f}"
         status_data["P&L(%)"] = f"{(((balance - base_balance) / base_balance) * 100.0) :.2f}"
         status_data["P&L($)"] = f"{balance - base_balance :.2f}"
+
+        status_data["Current Price"] = f"{df['close'].iloc[-1] :.2f}"
 
         sleep_until_next_hour(df)
 
