@@ -1,11 +1,11 @@
 import time
 from math import floor
 
-import ccxt
 import pandas as pd
 import pandas_ta as ta
 import os
 
+from DebugBinance import DebugBinance
 from keep_alive import keep_alive, status_data, signals
 from dotenv import load_dotenv
 
@@ -19,9 +19,10 @@ if not api_key:
 if not secret:
     raise ValueError("SECRET_KEY does not exist!")
 
-Client = ccxt.binance({
+Client = DebugBinance({
     'apiKey' : api_key, # your api key/code
-    'secret' : secret # your password
+    'secret' : secret, # your password
+    'enableRateLimit': True
 })
 
 

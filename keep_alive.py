@@ -5,11 +5,14 @@ from flask import Flask, render_template, jsonify
 from threading import Thread
 
 import os
-import ccxt
+
+from DebugBinance import DebugBinance
 
 app = Flask('')
 
-exchange = ccxt.binance()
+exchange = DebugBinance({
+    'enableRateLimit': True
+})
 
 status_data = {
     "status": "online",
