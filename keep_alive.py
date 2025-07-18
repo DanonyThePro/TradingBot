@@ -37,6 +37,10 @@ cached_chart_data = {
     "time" : []
 }
 
+@app.route('/uptime_only')
+def index():
+    return 'What are you doing here?'
+
 @app.route('/')
 def status():
     return render_template('status.html',
