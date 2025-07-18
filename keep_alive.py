@@ -96,7 +96,7 @@ def update_chart_data():
             "close": c,
             "time": t
         })
-        waiting_time = time_until_next_hour()
+        waiting_time = time_until_next_hour() + 60
         print("Chart data updated!")
         print(f"waiting {waiting_time} until next chart data update...")
         time.sleep(waiting_time)
