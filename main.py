@@ -33,6 +33,7 @@ def fetch_data(symbol):
         data = pd.DataFrame(
             ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
         data['time'] = pd.to_datetime(data['time'], unit='ms')
+        print(f'{symbol} Data was fetched successfully!')
         return data
     except Exception as ex:
         print(ex)
@@ -42,6 +43,7 @@ def fetch_data(symbol):
 def fetch_balance(currency):
     balance = Client.fetch_balance({'recvWindow': 60000})
     currency_balance = balance[currency]
+    print(f'{currency} Balance fetched successfully!')
     return currency_balance['free']
 
 
@@ -86,14 +88,14 @@ def sleep_until_next_hour(df):
     time.sleep(time_to_sleep)
 
     while True:
-        time.sleep(10)
+        time.sleep(60)
         df = fetch_data(symbol)
         current_open = df['open'].iloc[-2]
 
         if prev_open != current_open:
             break
 
-        print("Candle didn't change: waiting 10 seconds")
+        print("Candle didn't change: waiting 60 seconds")
 
 
 rsi_length = 14
@@ -122,6 +124,8 @@ def main():
     while True:
         df = fetch_data(symbol)
 
+        balance = fetch_balance('USDT')
+
         status_data["symbol"] = symbol
         if entryPrice != 0.0:
             status_data["Entry Price"] = f"{entryPrice :.2f}"
@@ -129,13 +133,12 @@ def main():
             status_data["Stop Loss"] = f"{stopLoss :.2f}"
         if takeProfit != 0.0:
             status_data["Take Profit"] = f"{takeProfit :.2f}"
-        status_data["Balance"] = f"{fetch_balance('USDT') :.2f}"
-        status_data["P&L(%)"] = f"{(((fetch_balance('USDT') - base_balance) / base_balance) * 100.0) :.2f}"
-        status_data["P&L($)"] = f"{fetch_balance('USDT') - base_balance :.2f}"
+        status_data["Balance"] = f"{balance :.2f}"
+        status_data["P&L(%)"] = f"{(((balance - base_balance) / base_balance) * 100.0) :.2f}"
+        status_data["P&L($)"] = f"{balance - base_balance :.2f}"
 
         sleep_until_next_hour(df)
 
-        balance = fetch_balance('USDT')
         close = df['close']
 
         rsi = RSI(close, rsi_length)

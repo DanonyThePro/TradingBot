@@ -93,6 +93,7 @@ def get_last_price():
     while True:
         try:
             ticker = exchange.fetch_ticker('BTC/USDT')
+            print(f'get_last_price() fetched a ticker')
             last_price = ticker['last']
         except Exception as e:
             print(e)
@@ -106,18 +107,19 @@ def get_last_price():
             status_data["Last Check"] = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m %H:%M:%S")
             should_update = True
 
-        time.sleep(30)
+        time.sleep(60)
 
 def get_btc_data():
     btc_ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=96)
+
+    print(f'get_btc_data() fetched ohlcv')
 
     open_candles  = [c[1] for c in btc_ohlcv]
     high_candles  = [c[2] for c in btc_ohlcv]
     low_candles   = [c[3] for c in btc_ohlcv]
     close_candles = [c[4] for c in btc_ohlcv]
 
-    israel_tz_correction = 3 * 1000 * 60 * 60
-    timestamps = [round_to_hour(c[0] + israel_tz_correction) for c in btc_ohlcv]
+    timestamps = [round_to_hour(c[0]) for c in btc_ohlcv]
 
     return open_candles, high_candles, low_candles, close_candles, timestamps
 
