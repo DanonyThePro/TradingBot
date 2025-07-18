@@ -1,5 +1,6 @@
 import time
 
+import pandas as pd
 from flask import Flask, render_template, jsonify
 from threading import Thread
 
@@ -95,8 +96,17 @@ def update_chart_data():
             "close": c,
             "time": t
         })
+        waiting_time = time_until_next_hour()
         print("Chart data updated!")
-        time.sleep(3600)
+        print(f"waiting {waiting_time} until next chart data update...")
+        time.sleep(waiting_time)
+
+
+def time_until_next_hour():
+    now = pd.Timestamp.utcnow()
+    next_hour = now.replace(minute=0, second=0, microsecond=0) + pd.Timedelta(hours=1)
+    total_seconds = (next_hour - now).total_seconds()
+    return total_seconds
 
 def round_to_hour(dataTime):
     hour_ms = 60 * 60 * 1000
