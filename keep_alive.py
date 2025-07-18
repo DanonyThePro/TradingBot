@@ -1,7 +1,4 @@
-import threading
 import time
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from flask import Flask, render_template, jsonify
 from threading import Thread
@@ -28,52 +25,44 @@ status_data = {
 
 signals = []
 
-should_update = False
+cached_chart_data = {
+    "open" : [],
+    "high" : [],
+    "low"  : [],
+    "close": [],
+    "time" : []
+}
 
-status_lock = threading.Lock()
 @app.route('/')
 def status():
-    with status_lock:
-        return render_template('status.html',
-                               status=status_data["status"],
-                               symbol=status_data["symbol"],
-                               current_price=status_data["Current Price"],
-                               entry_price=status_data["Entry Price"],
-                               stop_loss=status_data["Stop Loss"],
-                               take_profit=status_data["Take Profit"],
-                               balance=status_data["Balance"],
-                               pnl_percent=status_data["P&L(%)"],
-                               pnl_dollar=status_data["P&L($)"],
-                               last_check=status_data["Last Check"])
-
-@app.route('/reload')
-def reload():
-    with status_lock:
-        response = {
-            "Current Price": status_data["Current Price"],
-            "Last Check": status_data["Last Check"]
-        }
-        return jsonify(response)
+    return render_template('status.html',
+                           status=status_data["status"],
+                           symbol=status_data["symbol"],
+                           entry_price=status_data["Entry Price"],
+                           stop_loss=status_data["Stop Loss"],
+                           take_profit=status_data["Take Profit"],
+                           balance=status_data["Balance"],
+                           pnl_percent=status_data["P&L(%)"],
+                           pnl_dollar=status_data["P&L($)"])
 
 @app.route('/chart_values')
 def fetch_chart_values():
-    open_candles, high_candles, low_candles, close_candles, timestamps = get_btc_data()
     response = {
-        "timestamps": timestamps,
-        "open_candles": open_candles,
-        "high_candles": high_candles,
-        "low_candles": low_candles,
-        "close_candles": close_candles
+        "timestamps": cached_chart_data["time"],
+        "open_candles": cached_chart_data["open"],
+        "high_candles": cached_chart_data["high"],
+        "low_candles": cached_chart_data["low"],
+        "close_candles": cached_chart_data["close"]
     }
-    return response
+    return jsonify(response)
 
 @app.route('/signals')
 def get_signals():
-    _, _, _, _, timestamps = get_btc_data()
     recent_signals = []
     for signal in signals:
-        if timestamps[0] < signal["time"] < timestamps[-1]:
-            recent_signals.append(signal)
+        if len(cached_chart_data["time"]) != 0:
+            if cached_chart_data["time"][0] < signal["time"] < cached_chart_data["time"][-1]:
+                recent_signals.append(signal)
 
     response = {
         "signals": signals,
@@ -81,33 +70,6 @@ def get_signals():
     }
     return jsonify(response)
 
-def run():
-    port = int(os.environ.get("PORT", 5000))
-    print(f"Running on port: {port}")
-    app.run(host='0.0.0.0', port=port)
-
-def get_last_price():
-    global should_update
-    last_price = 0.0
-
-    while True:
-        try:
-            ticker = exchange.fetch_ticker('BTC/USDT')
-            print(f'get_last_price() fetched a ticker')
-            last_price = ticker['last']
-        except Exception as e:
-            print(e)
-
-        with status_lock:
-            if last_price == 0.0:
-                status_data["Current Price"] = "Failed"
-            else:
-                status_data["Current Price"] = f"{last_price :.2f}"
-
-            status_data["Last Check"] = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m %H:%M:%S")
-            should_update = True
-
-        time.sleep(60)
 
 def get_btc_data():
     btc_ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=96)
@@ -123,16 +85,36 @@ def get_btc_data():
 
     return open_candles, high_candles, low_candles, close_candles, timestamps
 
+def update_chart_data():
+    while True:
+        o, h, l, c, t = get_btc_data()
+        cached_chart_data.update({
+            "open": o,
+            "high": h,
+            "low": l,
+            "close": c,
+            "time": t
+        })
+        print("Chart data updated!")
+        time.sleep(3600)
+
 def round_to_hour(dataTime):
     hour_ms = 60 * 60 * 1000
     return (dataTime // hour_ms) * hour_ms
 
+
+def run():
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Running on port: {port}")
+    app.run(host='0.0.0.0', port=port)
+
+
 def keep_alive():
     run_thread = Thread(target=run)
-    data_thread = Thread(target=get_last_price)
+    btc_data_thread = Thread(target=update_chart_data)
 
     run_thread.daemon = True
-    data_thread.daemon = True
+    btc_data_thread.daemon = True
 
     run_thread.start()
-    data_thread.start()
+    btc_data_thread.start()

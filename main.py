@@ -29,7 +29,7 @@ Client.load_markets()
 
 def fetch_data(symbol):
     try:
-        ohlcv = Client.fetch_ohlcv(symbol, "1h", limit=100)
+        ohlcv = Client.fetch_ohlcv(symbol, "1h", limit=50)
         data = pd.DataFrame(
             ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
         data['time'] = pd.to_datetime(data['time'], unit='ms')

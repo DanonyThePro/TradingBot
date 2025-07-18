@@ -27,27 +27,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.1.0/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.1/dist/chartjs-chart-financial.min.js"></script>
 
-
-  <script>
-    const hour_ms = 60 * 60 * 1000;
-
-    async function update() {
-      try {
-        const response = await fetch("/reload");
-        const data = await response.json();
-        document.getElementById("current_price").innerText = `Current Price: ${data["Current Price"]}`;
-        document.getElementById("last_check").innerText = `Last Check: ${data["Last Check"]}`;
-      }
-      catch(err) {
-        console.error("Error fetching price:", err);
-      }
-    }
-
-    update();
-
-    setInterval(update, hour_ms);
-  </script>
-
   <title>Bot Status</title>
 </head>
 <body>
@@ -55,18 +34,12 @@
   <h1>Bot Status</h1>
   <p>status: {{ status }} </p>
   <p>symbol: {{ symbol }} </p>
-  <p id="current_price">
-    Current Price: {{ current_price }}
-  </p>
   <p>Entry Price: {{ entry_price }} </p>
   <p>Stop Loss: {{ stop_loss }} </p>
   <p>Take Profit: {{ take_profit }} </p>
   <p>Balance: {{ balance }} </p>
   <p>P&L(%): {{ pnl_percent }} </p>
   <p>P&L($): {{ pnl_dollar }} </p>
-  <p id="last_check">
-    Last Check: {{ last_check }}
-  </p>
 
   <div id="chartContainer">
       <canvas id="myChart">
