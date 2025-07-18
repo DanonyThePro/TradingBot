@@ -24,8 +24,6 @@ Client = ccxt.binance({
     'secret' : secret # your password
 })
 
-Client.load_markets()
-
 
 def fetch_data(symbol):
     try:
