@@ -18,12 +18,13 @@ cached_data = {
 
 keys = [ "open", "high", "low", "close", "time" ]
 
+
 def set_initial_data():
     global cached_data
     try:
         ohlcv = Client.fetch_ohlcv('BTC/USDT', "1h", limit=96)
         data = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-        print(f'Data was fetched successfully!')
+        print(f'Initial data was fetched successfully!')
 
         for key in keys:
             cached_data[key] = data[key].tolist()
@@ -32,7 +33,8 @@ def set_initial_data():
         print(f"failed to set initial data!! \n ERROR: {ex}")
 
 def fetch_data():
-    return cached_data
+    print("Fetching data from Websocket + ccxt data...")
+    return {key: pd.Series(cached_data[key]) for key in keys}
 
 
 def on_message(ws, message):
@@ -77,9 +79,17 @@ ws = websocket.WebSocketApp(
 set_initial_data()
 
 def run():
+    global ws
     while True:
         try:
             print("Starting websocket...")
+            ws = websocket.WebSocketApp(
+                url,
+                on_open=on_open,
+                on_message=on_message,
+                on_error=on_error,
+                on_close=on_close
+            )
             ws.run_forever(ping_interval=30, ping_timeout=10)
         except Exception as e:
             print(f"Websocket crashed! ERROR: {e}")

@@ -79,10 +79,10 @@ def get_btc_data():
 
     print(f'get_btc_data() fetched data...')
 
-    open_candles  = [candle_open  for candle_open  in btc_data["open"]]
-    high_candles  = [candle_high  for candle_high  in btc_data["high"]]
-    low_candles   = [candle_low   for candle_low   in btc_data["low"]]
-    close_candles = [candle_close for candle_close in btc_data["close"]]
+    open_candles  = [ candle_open  for candle_open  in btc_data["open"] ]
+    high_candles  = [ candle_high  for candle_high  in btc_data["high"] ]
+    low_candles   = [ candle_low   for candle_low   in btc_data["low"] ]
+    close_candles = [ candle_close for candle_close in btc_data["close"] ]
 
     timestamps = [round_to_hour(candle_start_time) for candle_start_time in btc_data["time"]]
 
