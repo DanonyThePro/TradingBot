@@ -48,19 +48,19 @@ def on_message(ws, message):
         "closed": candlestick['x']  # True when candle is fully closed
     }
 
-    # if latest_candle["closed"]:
-    for key in keys:
-        cached_data[key].append(latest_candle[key])
-        cached_data[key].pop(0)
+    if latest_candle["closed"]:
+        for key in keys:
+            cached_data[key].append(latest_candle[key])
+            cached_data[key].pop(0)
 
 def on_error(ws, error):
     print("WebSocket error:", error)
 
 def on_close(ws, close_status_code, close_msg):
-    print("WebSocket closed")
+    print(f"WebSocket closed, {close_status_code}")
 
 def on_open(ws):
-    print("✅ WebSocket connected!")
+    print("WebSocket connected!")
 
 # Binance **Futures** 1h Klines (use stream.binance.com for spot)
 url = "wss://stream.binance.com:9443/ws/btcusdt@kline_1h"
