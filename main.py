@@ -107,10 +107,10 @@ def main():
     stopLoss = 0.0
     takeProfit = 0.0
 
+    balance = base_balance
+
     while True:
         df = fetch_data()
-
-        balance = fetch_balance('USDT')
 
         status_data["symbol"] = symbol
         if entryPrice != 0.0:
@@ -141,6 +141,7 @@ def main():
                           and close.iloc[-1] < close.iloc[-2] and uptrend
                           and not inPosition)
 
+
         exit_condition = ((directionRSI > 0 and rsi.iloc[-1] < rsi_oversold)
                           or (rsi.iloc[-1] < rsi_oversold
                               and rsi.iloc[-2] < rsi_oversold))
@@ -165,6 +166,7 @@ def main():
             signals.append({ "time": df['time'].iloc[-1], "type": "buy" })
 
             Client.create_market_order(symbol, 'buy', round_quantity(qty, 5))
+            balance = fetch_balance('USDT')
             inPosition = True
 
         if inPosition:
@@ -177,8 +179,9 @@ def main():
 
                 signals.append({"time": df['time'].iloc[-1], "type": "sell"})
 
-                Client.create_market_order(symbol, 'sell',
-                                           fetch_balance('BTC'))
+                Client.create_market_order(symbol, 'sell', fetch_balance('BTC'))
+
+                balance = fetch_balance('USDT')
                 inPosition = False
 
             if close.iloc[-1] < stopLoss:
@@ -193,6 +196,7 @@ def main():
 
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
+                balance = fetch_balance('USDT')
                 inPosition = False
 
             if close.iloc[-1] >= takeProfit:
@@ -207,6 +211,7 @@ def main():
 
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
+                balance = fetch_balance('USDT')
                 inPosition = False
 
 
