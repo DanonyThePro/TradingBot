@@ -1,18 +1,13 @@
 import time
 
 import pandas as pd
-from flask import Flask, render_template, jsonify
-from threading import Thread
-
 import os
 
-from DebugBinance import DebugBinance
+from flask import Flask, render_template, jsonify
+from threading import Thread
+from Websocket import fetch_data
 
 app = Flask('')
-
-exchange = DebugBinance({
-    'enableRateLimit': True
-})
 
 status_data = {
     "status": "online",
@@ -80,16 +75,16 @@ def get_signals():
 
 
 def get_btc_data():
-    btc_ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=96)
+    btc_data = fetch_data()
 
-    print(f'get_btc_data() fetched ohlcv!')
+    print(f'get_btc_data() fetched data...')
 
-    open_candles  = [c[1] for c in btc_ohlcv]
-    high_candles  = [c[2] for c in btc_ohlcv]
-    low_candles   = [c[3] for c in btc_ohlcv]
-    close_candles = [c[4] for c in btc_ohlcv]
+    open_candles  = [candle_open  for candle_open  in btc_data["open"]]
+    high_candles  = [candle_high  for candle_high  in btc_data["high"]]
+    low_candles   = [candle_low   for candle_low   in btc_data["low"]]
+    close_candles = [candle_close for candle_close in btc_data["close"]]
 
-    timestamps = [round_to_hour(c[0]) for c in btc_ohlcv]
+    timestamps = [round_to_hour(candle_start_time) for candle_start_time in btc_data["time"]]
 
     return open_candles, high_candles, low_candles, close_candles, timestamps
 

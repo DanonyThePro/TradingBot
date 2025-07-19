@@ -8,6 +8,7 @@ import os
 from DebugBinance import DebugBinance
 from keep_alive import keep_alive, status_data, signals
 from dotenv import load_dotenv
+from Websocket import run, fetch_data
 
 load_dotenv()
 
@@ -24,19 +25,6 @@ Client = DebugBinance({
     'secret' : secret, # your password
     'enableRateLimit': True
 })
-
-
-def fetch_data(symbol):
-    try:
-        ohlcv = Client.fetch_ohlcv(symbol, "1h", limit=50)
-        data = pd.DataFrame(
-            ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-        data['time'] = pd.to_datetime(data['time'], unit='ms')
-        print(f'{symbol} Data was fetched successfully!')
-        return data
-    except Exception as ex:
-        print(f"failed to fetch data: {ex}")
-        return pd.DataFrame.empty
 
 
 def fetch_balance(currency):
@@ -81,15 +69,15 @@ def time_until_next_hour():
 
 
 def sleep_until_next_hour(df):
-    prev_open = df['open'].iloc[-2]
+    prev_open = df['open'][-2]
     time_to_sleep = time_until_next_hour()
     print(f"Sleeping {time_to_sleep} seconds until next candle...")
     time.sleep(time_to_sleep)
 
     while True:
         time.sleep(60)
-        df = fetch_data(symbol)
-        current_open = df['open'].iloc[-2]
+        df = fetch_data()
+        current_open = df['open'][-2]
 
         if prev_open != current_open:
             break
@@ -101,7 +89,7 @@ rsi_length = 14
 rsi_oversold = 30
 rsi_overbought = 70
 
-risk_per_trade = 10.0 / 100.0  # change when possible (best 10.0%)
+risk_per_trade = 10.0 / 100.0
 
 sl_percent = 3.0 / 100.0
 tp_percent = 45.0 / 100.0
@@ -113,7 +101,6 @@ symbol = 'BTC/USDT'
 base_balance = fetch_balance('USDT')
 
 
-
 def main():
     inPosition = False
     entryPrice = 0.0
@@ -121,7 +108,7 @@ def main():
     takeProfit = 0.0
 
     while True:
-        df = fetch_data(symbol)
+        df = fetch_data()
 
         balance = fetch_balance('USDT')
 
@@ -136,7 +123,7 @@ def main():
         status_data["P&L(%)"] = f"{(((balance - base_balance) / base_balance) * 100.0) :.2f}"
         status_data["P&L($)"] = f"{balance - base_balance :.2f}"
 
-        status_data["Current Price"] = f"{df['close'].iloc[-1] :.2f}"
+        status_data["Current Price"] = f"{df['close'][-1] :.2f}"
 
         sleep_until_next_hour(df)
 
@@ -144,38 +131,38 @@ def main():
 
         rsi = RSI(close, rsi_length)
 
-        directionRSI = get_direction(rsi.iloc[-2], rsi.iloc[-1])
+        directionRSI = get_direction(rsi[-2], rsi[-1])
 
         ma = SMA(close, ma_length)
         uptrend = close > ma
 
-        long_condition = (directionRSI < 0 and rsi.iloc[-1] > rsi_overbought
-                          and rsi.iloc[-2] > rsi_overbought
-                          and close.iloc[-1] < close.iloc[-2] and uptrend
+        long_condition = (directionRSI < 0 and rsi[-1] > rsi_overbought
+                          and rsi[-2] > rsi_overbought
+                          and close[-1] < close[-2] and uptrend
                           and not inPosition)
 
-        exit_condition = ((directionRSI > 0 and rsi.iloc[-1] < rsi_oversold)
-                          or (rsi.iloc[-1] < rsi_oversold
-                              and rsi.iloc[-2] < rsi_oversold))
+        exit_condition = ((directionRSI > 0 and rsi[-1] < rsi_oversold)
+                          or (rsi[-1] < rsi_oversold
+                              and rsi[-2] < rsi_oversold))
 
         risk_amount = balance * risk_per_trade
-        risk_per_share = close.iloc[-1] * sl_percent
+        risk_per_share = close[-1] * sl_percent
         position_size = risk_amount / risk_per_share
 
         if long_condition:
-            entryPrice = close.iloc[-1]
-            stopLoss = close.iloc[-1] * (1 - sl_percent)
-            takeProfit = close.iloc[-1] * (1 + tp_percent)
+            entryPrice = close[-1]
+            stopLoss = close[-1] * (1 - sl_percent)
+            takeProfit = close[-1] * (1 + tp_percent)
 
-            qty = Min(position_size, balance / close.iloc[-1])
+            qty = Min(position_size, balance / close[-1])
 
             print("📈 BUY SIGNAL!! \n" +
                   f"Quantity: {round_quantity(qty, 5)} \n" +
-                  f"Price: ${close.iloc[-1] :.2f}\n" +
+                  f"Price: ${close[-1] :.2f}\n" +
                   f"Target: $ {takeProfit :.2f} \n" +
                   f"Stop Loss: ${stopLoss :.2f}")
 
-            signals.append({ "time": df['time'].iloc[-1], "type": "buy" })
+            signals.append({ "time": df['time'][-1], "type": "buy" })
 
             Client.create_market_order(symbol, 'buy', round_quantity(qty, 5))
             inPosition = True
@@ -183,40 +170,40 @@ def main():
         if inPosition:
             if exit_condition:
                 print(
-                    "🗿 SELL SIGNAL \n" + f"Price: $ {close.iloc[-1] :.2f} \n" +
+                    "🗿 SELL SIGNAL \n" + f"Price: $ {close[-1] :.2f} \n" +
                     f"Entry: $ {entryPrice :.2f} \n" +
-                    f"P&L: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
+                    f"P&L: {(((close[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
 
-                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+                signals.append({"time": df['time'][-1], "type": "sell"})
 
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
                 inPosition = False
 
-            if close.iloc[-1] < stopLoss:
+            if close[-1] < stopLoss:
                 print(
                     "🛑 STOP LOSS HIT \n" +
-                    f"Price: $ {close.iloc[-1] :.2f} \n" +
+                    f"Price: $ {close[-1] :.2f} \n" +
                     f"Entry: $ {entryPrice :.2f} \n" +
-                    f"Loss: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
+                    f"Loss: {(((close[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
 
-                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+                signals.append({"time": df['time'][-1], "type": "sell"})
 
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
                 inPosition = False
 
-            if close.iloc[-1] >= takeProfit:
+            if close[-1] >= takeProfit:
                 print(
                     "🤑 TAKE PROFIT HIT \n" +
-                    f"Price: $ {close.iloc[-1] :.2f} \n" +
+                    f"Price: $ {close[-1] :.2f} \n" +
                     f"Entry: $ {entryPrice :.2f} \n" +
-                    f"Profit: {(((close.iloc[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
+                    f"Profit: {(((close[-1] - entryPrice) / entryPrice) * 100) :.2f}%"
                 )
 
-                signals.append({"time": df['time'].iloc[-1], "type": "sell"})
+                signals.append({"time": df['time'][-1], "type": "sell"})
 
                 Client.create_market_order(symbol, 'sell',
                                            fetch_balance('BTC'))
@@ -225,5 +212,7 @@ def main():
 
 if __name__ == '__main__':
     print("Bot is running...")
+    run()
+    time.sleep(10)
     keep_alive()
     main()
