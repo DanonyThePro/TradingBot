@@ -77,8 +77,6 @@ def get_signals():
 def get_btc_data():
     btc_data = fetch_data()
 
-    print(f'get_btc_data() fetched data...')
-
     open_candles  = [ candle_open  for candle_open  in btc_data["open"] ]
     high_candles  = [ candle_high  for candle_high  in btc_data["high"] ]
     low_candles   = [ candle_low   for candle_low   in btc_data["low"] ]
