@@ -8,7 +8,7 @@ import os
 from DebugBinance import DebugBinance
 from keep_alive import keep_alive, status_data, signals
 from dotenv import load_dotenv
-from Websocket import run, fetch_data
+from Websocket import run_websocket, fetch_data
 
 load_dotenv()
 
@@ -212,7 +212,7 @@ def main():
 
 if __name__ == '__main__':
     print("Bot is running...")
-    run()
+    run_websocket()
     time.sleep(10)
     keep_alive()
     main()

@@ -53,8 +53,6 @@ def on_message(ws, message):
         cached_data[key].append(latest_candle[key])
         cached_data[key].pop(0)
 
-    time.sleep(10)
-
 def on_error(ws, error):
     print("WebSocket error:", error)
 
@@ -79,6 +77,16 @@ ws = websocket.WebSocketApp(
 set_initial_data()
 
 def run():
-    t = Thread(target=ws.run_forever)
+    while True:
+        try:
+            print("Starting websocket...")
+            ws.run_forever(ping_interval=30, ping_timeout=10)
+        except Exception as e:
+            print(f"Websocket crashed! ERROR: {e}")
+        print("Restarting in 5 seconds...")
+        time.sleep(5)
+
+def run_websocket():
+    t = Thread(target=run)
     t.daemon = True
     t.start()
