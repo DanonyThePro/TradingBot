@@ -1,12 +1,11 @@
 import time
-
 import pandas as pd
 import os
-
-from flask import Flask, render_template, jsonify
-from threading import Thread
-
 import Debug
+import logging
+
+from flask import Flask, render_template, jsonify, request
+from threading import Thread
 from Websocket import fetch_data
 
 app = Flask('')
@@ -33,6 +32,13 @@ cached_chart_data = {
     "close": [],
     "time" : []
 }
+
+@app.before_request
+def mute_specific_routes():
+    if request.path == "/signals" or request.path == "/chart_values":
+        logging.getLogger('werkzeug').setLevel(logging.ERROR)
+    else:
+        logging.getLogger('werkzeug').setLevel(logging.INFO)
 
 @app.route('/uptime_only')
 def index():
