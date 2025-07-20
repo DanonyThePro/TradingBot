@@ -5,6 +5,8 @@ import os
 
 from flask import Flask, render_template, jsonify
 from threading import Thread
+
+import Debug
 from Websocket import fetch_data
 
 app = Flask('')
@@ -96,10 +98,7 @@ def update_chart_data():
             "close": c,
             "time": t
         })
-        waiting_time = time_until_next_hour()
-        print("Chart data updated!")
-        print(f"waiting {waiting_time} until next chart data update...")
-        time.sleep(waiting_time)
+        time.sleep(10)
 
 
 def time_until_next_hour():
@@ -115,7 +114,7 @@ def round_to_hour(dataTime):
 
 def run():
     port = int(os.environ.get("PORT", 5000))
-    print(f"Running on port: {port}")
+    Debug.success(f"Running on port: {port}")
     app.run(host='0.0.0.0', port=port)
 
 

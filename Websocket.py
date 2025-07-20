@@ -6,6 +6,8 @@ import ccxt
 import time
 import pandas as pd
 
+import Debug
+
 Client = ccxt.binance()
 
 cached_data = {
@@ -18,23 +20,34 @@ cached_data = {
 
 keys = [ "open", "high", "low", "close", "time" ]
 
+HEADER = '\033[95m'
+OKBLUE = '\033[94m'
+OKCYAN = '\033[96m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+RESET = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
 
 def set_initial_data():
     global cached_data
     try:
         ohlcv = Client.fetch_ohlcv('BTC/USDT', "1h", limit=96)
         data = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-        print(f'Initial data was fetched successfully!')
+        Debug.success(f'Initial data was fetched successfully!')
 
         for key in keys:
             cached_data[key] = data[key].tolist()
 
     except Exception as ex:
-        print(f"failed to set initial data!! \n ERROR: {ex}")
+        Debug.error(f"Failed to set initial data!! \n ERROR: {ex}")
 
 def fetch_data():
-    print("Fetching data from Websocket + ccxt data...")
-    return {key: pd.Series(cached_data[key]) for key in keys}
+    try:
+        return {key: pd.Series(cached_data[key]) for key in keys}
+    except Exception as e:
+        Debug.error(f"FAILED TO FETCH DATA! \n ERROR: {e}")
 
 
 def on_message(ws, message):
@@ -54,15 +67,18 @@ def on_message(ws, message):
         for key in keys:
             cached_data[key].append(latest_candle[key])
             cached_data[key].pop(0)
+    else:
+        for key in keys:
+            cached_data[key][-1] = latest_candle[key]
 
 def on_error(ws, error):
-    print("WebSocket error:", error)
+    Debug.error("WebSocket error:", error)
 
 def on_close(ws, close_status_code, close_msg):
-    print(f"WebSocket closed, {close_status_code}")
+    Debug.header(f"WebSocket closed, {close_status_code}")
 
 def on_open(ws):
-    print("WebSocket connected!")
+    Debug.success("WebSocket connected!")
 
 # Binance **Futures** 1h Klines (use stream.binance.com for spot)
 url = "wss://stream.binance.com:9443/ws/btcusdt@kline_1h"
@@ -92,8 +108,8 @@ def run():
             )
             ws.run_forever(ping_interval=30, ping_timeout=10)
         except Exception as e:
-            print(f"Websocket crashed! ERROR: {e}")
-        print("Restarting in 5 seconds...")
+            Debug.warning(f"Websocket crashed! ERROR: {e}")
+        Debug.header("Restarting in 5 seconds...")
         time.sleep(5)
 
 def run_websocket():

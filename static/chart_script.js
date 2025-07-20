@@ -1,4 +1,4 @@
-const hour_in_ms = 60 * 60 * 1000;
+const ten_seconds = 10000;
 
 let context = document.getElementById('myChart');
 
@@ -71,7 +71,7 @@ const chart = new Chart(context, config);
 
 update_chart_values_to_python_values();
 
-setInterval(update_chart_values_to_python_values, hour_in_ms);
+setInterval(update_chart_values_to_python_values, ten_seconds);
 
 
 async function update_chart_values_to_python_values() {

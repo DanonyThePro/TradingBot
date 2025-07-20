@@ -5,6 +5,7 @@ import pandas as pd
 import pandas_ta as ta
 import os
 
+import Debug
 from DebugBinance import DebugBinance
 from keep_alive import keep_alive, status_data, signals
 from dotenv import load_dotenv
@@ -30,7 +31,7 @@ Client = DebugBinance({
 def fetch_balance(currency):
     balance = Client.fetch_balance({'recvWindow': 60000})
     currency_balance = balance[currency]
-    print(f'{currency} Balance fetched successfully!')
+    Debug.success(f'{currency} Balance fetched successfully!')
     return currency_balance['free']
 
 
