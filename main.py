@@ -29,6 +29,7 @@ Client = DebugBinance({
 
 
 def fetch_balance(currency):
+    Client.load_time_difference()
     balance = Client.fetch_balance({'recvWindow': 60000})
     currency_balance = balance[currency]
     Debug.success(f'{currency} Balance fetched successfully!')

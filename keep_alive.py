@@ -35,14 +35,11 @@ cached_chart_data = {
 
 @app.before_request
 def mute_specific_routes():
-    if request.path == "/signals" or request.path == "/chart_values":
+    if request.path == "/signals" or request.path == "/chart_values" or request.path == "/static/chart_script.js":
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
     else:
         logging.getLogger('werkzeug').setLevel(logging.INFO)
 
-@app.route('/uptime_only')
-def index():
-    return 'What are you doing here?'
 
 @app.route('/')
 def status():
