@@ -104,7 +104,11 @@ base_balance = fetch_balance('USDT')
 
 inPosition = base_balance < 10
 
+print(f"Base Balance: {base_balance}, inPosition: {inPosition}")
+
 def main():
+    global inPosition
+    
     entryPrice = 0.0
     stopLoss = 0.0
     takeProfit = 0.0
