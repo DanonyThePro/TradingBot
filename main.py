@@ -102,9 +102,9 @@ symbol = 'BTC/USDT'
 
 base_balance = fetch_balance('USDT')
 
+inPosition = base_balance < 10
 
 def main():
-    inPosition = False
     entryPrice = 0.0
     stopLoss = 0.0
     takeProfit = 0.0
